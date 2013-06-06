@@ -2,7 +2,7 @@ package publishsubscribe;
 
 import java.io.Serializable;
 
-public class Filtro implements Serializable {
+public class Registrar extends Requisicao implements Serializable {
 	
 	/**
 	 * 

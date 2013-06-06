@@ -2,7 +2,7 @@ package publishsubscribe;
 
 import java.io.Serializable;
 
-public class Evento implements Serializable {
+public class Evento extends Requisicao implements Serializable {
 	/**
 	 * 
 	 */
