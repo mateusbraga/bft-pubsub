@@ -1,10 +1,8 @@
 package publishsubscribe;
 
 
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -12,9 +10,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-
-
 import bftsmart.statemanagment.ApplicationState;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ReplicaContext;
@@ -47,6 +42,8 @@ public class Servidor implements SingleExecutable, Recoverable {
 			if (req.tag == Requisicao.Tipo.NovoEvento) {
 				Evento evento = (Evento) req;
 				
+				System.out.println("Nova mensagem: " + evento);
+				
 				if (topicoParaInteressados.containsKey(evento.topico)) {
 					List<Socket> clientesInteressados = topicoParaInteressados.get(evento.topico);
 					for(Socket clientSocket : clientesInteressados) {
@@ -77,6 +74,16 @@ public class Servidor implements SingleExecutable, Recoverable {
 				
 				String resposta = "Processado com sucesso!";
 	            return resposta.getBytes();
+			} else if (req.tag == Requisicao.Tipo.Descadastrar) {
+				Descadastrar descadastrar = (Descadastrar) req;
+				
+				if (topicoParaInteressados.containsKey(descadastrar.Topico)) {
+					Socket socket = new Socket (descadastrar.clientId.ip, descadastrar.clientId.porta);
+					topicoParaInteressados.get(descadastrar.Topico).remove(socket);
+				}
+
+				String resposta = "Processado com sucesso!";
+	            return resposta.getBytes();
 			}
 		} catch (Exception ex) {
             System.err.println("Invalid request received!");
@@ -101,6 +108,16 @@ public class Servidor implements SingleExecutable, Recoverable {
 		// TODO Auto-generated method stub
 		return 0;
 	}
+	
+    public static void main(String[] args){
+        if(args.length < 1) {
+            System.out.println("Use: java CounterServer <processId>");
+            System.exit(-1);
+        }
+        
+        new Servidor(Integer.parseInt(args[0]));
+        
+    }
 
 
 }

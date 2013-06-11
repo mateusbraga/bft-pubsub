@@ -8,6 +8,6 @@ public class Requisicao {
 	
 	
 	public enum Tipo {
-		NovoEvento, Registro, PegarEvento
+		NovoEvento, Registro, Descadastrar
 	}
 }

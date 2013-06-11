@@ -10,4 +10,8 @@ public class Evento extends Requisicao implements Serializable {
 	
 	public String topico;
 	public String msg;
+	
+	public String toString() {
+		return "Topico: " + topico + " Mensagem: " + msg + ".";
+	}
 }
