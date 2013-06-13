@@ -1,6 +1,9 @@
 package publishsubscribe;
 
-public class ClientId {
+import java.io.Serializable;
+
+public class ClientId implements Serializable {
 	public String ip;
 	public int porta;
 }
+	

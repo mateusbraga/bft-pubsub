@@ -22,7 +22,7 @@ public class Servidor implements SingleExecutable, Recoverable {
 	ServiceReplica replica = null;
     private ReplicaContext replicaContext;
     
-    private HashMap<String, List<Socket>> topicoParaInteressados = new HashMap<String, List<Socket>>();
+    private HashMap<String, List<ObjectOutputStream>> topicoParaInteressados = new HashMap<String, List<ObjectOutputStream>>();
     
     
     public Servidor(int id) {
@@ -36,45 +36,46 @@ public class Servidor implements SingleExecutable, Recoverable {
 
 	@Override
 	public byte[] executeOrdered(byte[] command, MessageContext msgContext) {
+		System.out.println("Requisicao recebida");
 		try {
 			Requisicao req = (Requisicao) new ObjectInputStream(new ByteArrayInputStream(command)).readObject();
 			
 			if (req.tag == Requisicao.Tipo.NovoEvento) {
+				System.out.println("Novo evento recebida");
 				Evento evento = (Evento) req;
 				
 				System.out.println("Nova mensagem: " + evento);
 				
 				if (topicoParaInteressados.containsKey(evento.topico)) {
-					List<Socket> clientesInteressados = topicoParaInteressados.get(evento.topico);
-					for(Socket clientSocket : clientesInteressados) {
-						OutputStream outputStream = clientSocket.getOutputStream();
-						
-						ByteArrayOutputStream out = new ByteArrayOutputStream();
-			            new ObjectOutputStream(out).writeObject(evento);
-			            outputStream.write(out.toByteArray());
-			            outputStream.flush();
+					List<ObjectOutputStream> clientesInteressados = topicoParaInteressados.get(evento.topico);
+					for(ObjectOutputStream objOutStream : clientesInteressados) {
+			            objOutStream.writeObject(evento);
+			            objOutStream.flush();
 					}
 				}		
 				
 				String resposta = "Processado com sucesso!";
 	            return resposta.getBytes();
 			} else if (req.tag == Requisicao.Tipo.Registro) {
+				System.out.println("Registro start!");
+				
 				Registrar registrar = (Registrar) req;
 				
 				if (topicoParaInteressados.containsKey(registrar.Topico)) {
 					Socket socket = new Socket (registrar.clientId.ip, registrar.clientId.porta);
-					topicoParaInteressados.get(registrar.Topico).add(socket);
+					topicoParaInteressados.get(registrar.Topico).add(new ObjectOutputStream(socket.getOutputStream()));
 				} else {
-					ArrayList<Socket> list = new ArrayList<Socket>();
+					ArrayList<ObjectOutputStream> list = new ArrayList<ObjectOutputStream>();
 
 					Socket socket = new Socket (registrar.clientId.ip, registrar.clientId.porta);
-					list.add(socket);
+					list.add(new ObjectOutputStream(socket.getOutputStream()));
 					topicoParaInteressados.put(registrar.Topico, list);					
 				}
 				
 				String resposta = "Processado com sucesso!";
 	            return resposta.getBytes();
 			} else if (req.tag == Requisicao.Tipo.Descadastrar) {
+				System.out.println("Descadastrar recebida");
 				Descadastrar descadastrar = (Descadastrar) req;
 				
 				if (topicoParaInteressados.containsKey(descadastrar.Topico)) {
@@ -84,8 +85,11 @@ public class Servidor implements SingleExecutable, Recoverable {
 
 				String resposta = "Processado com sucesso!";
 	            return resposta.getBytes();
+			} else {
+				System.out.println("Nada recebido");
 			}
 		} catch (Exception ex) {
+			ex.printStackTrace();
             System.err.println("Invalid request received!");
             return new byte[0];
         }
