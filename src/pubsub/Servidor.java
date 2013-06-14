@@ -33,6 +33,7 @@ public class Servidor implements SingleExecutable, Recoverable {
 		return null;
 	}
 
+	
 	@Override
 	public byte[] executeOrdered(byte[] command, MessageContext msgContext) {
 		System.out.println("Requisicao recebida");
