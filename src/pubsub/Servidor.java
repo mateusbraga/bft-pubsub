@@ -1,21 +1,20 @@
-package publishsubscribe;
+package pubsub;
 
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
 import bftsmart.statemanagment.ApplicationState;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ReplicaContext;
 import bftsmart.tom.ServiceReplica;
-import bftsmart.tom.server.SingleExecutable;
 import bftsmart.tom.server.Recoverable;
+import bftsmart.tom.server.SingleExecutable;
 
 public class Servidor implements SingleExecutable, Recoverable {
 

@@ -1,4 +1,4 @@
-package publishsubscribe;
+package pubsub;
 
 import java.io.Serializable;
 

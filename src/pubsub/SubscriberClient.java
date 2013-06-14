@@ -1,4 +1,4 @@
-package client;
+package pubsub;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -12,10 +12,6 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-import publishsubscribe.ClientId;
-import publishsubscribe.Evento;
-import publishsubscribe.Registrar;
-import publishsubscribe.Requisicao;
 import bftsmart.tom.ServiceProxy;
 
 public class SubscriberClient {

@@ -1,13 +1,10 @@
-package client;
+package pubsub;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
-import publishsubscribe.ClientId;
-import publishsubscribe.Evento;
-import publishsubscribe.Requisicao;
 
 import bftsmart.tom.ServiceProxy;
 
