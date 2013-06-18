@@ -90,7 +90,6 @@ public class Servidor implements SingleExecutable, Recoverable {
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
-            System.err.println("Invalid request received!");
             return new byte[0];
         }
 		return null;
