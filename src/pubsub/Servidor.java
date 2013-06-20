@@ -44,8 +44,6 @@ public class Servidor implements SingleExecutable, Recoverable {
 				System.out.println("Novo evento recebida");
 				Evento evento = (Evento) req;
 				
-				System.out.println("Nova mensagem: " + evento);
-				
 				if (topicoParaInteressados.containsKey(evento.topico)) {
 					List<ObjectOutputStream> clientesInteressados = topicoParaInteressados.get(evento.topico);
 					for(ObjectOutputStream objOutStream : clientesInteressados) {
@@ -57,7 +55,7 @@ public class Servidor implements SingleExecutable, Recoverable {
 				String resposta = "Processado com sucesso!";
 	            return resposta.getBytes();
 			} else if (req.tag == Requisicao.Tipo.Registro) {
-				System.out.println("Registro start!");
+				System.out.println("Novo pedido de Registro!");
 				
 				Registrar registrar = (Registrar) req;
 				
@@ -75,7 +73,7 @@ public class Servidor implements SingleExecutable, Recoverable {
 				String resposta = "Processado com sucesso!";
 	            return resposta.getBytes();
 			} else if (req.tag == Requisicao.Tipo.Descadastrar) {
-				System.out.println("Descadastrar recebida");
+				System.out.println("Novo pedido para descadastrar recebido!");
 				Descadastrar descadastrar = (Descadastrar) req;
 				
 				if (topicoParaInteressados.containsKey(descadastrar.Topico)) {
@@ -86,7 +84,7 @@ public class Servidor implements SingleExecutable, Recoverable {
 				String resposta = "Processado com sucesso!";
 	            return resposta.getBytes();
 			} else {
-				System.out.println("Nada recebido");
+				System.out.println("Tipo de requisição não conhecido.");
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();

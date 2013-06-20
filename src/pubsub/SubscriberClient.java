@@ -6,8 +6,15 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import bftsmart.tom.ServiceProxy;
 
@@ -15,7 +22,8 @@ public class SubscriberClient {
 
 	static ServiceProxy pubsubProxy;
 	static int porta = 7778;
-	static Hashtable<Evento, Integer> eventosSendoRecebidos = new Hashtable<Evento, Integer>();
+	static Hashtable<Integer, Hashtable<Integer, Integer>> eventosSendoRecebidos = new Hashtable<Integer, Hashtable<Integer, Integer>>();
+	static Hashtable<Integer, Set<Integer>> eventosRecebidos = new Hashtable<Integer, Set<Integer>>();
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		if (args.length < 2) {
@@ -56,27 +64,72 @@ public class SubscriberClient {
 	}
 	
 	public synchronized static void recebeuEvento(Evento evento) {
-		if (eventosSendoRecebidos.containsKey(evento)) {
-			if (eventosSendoRecebidos.get(evento) == pubsubProxy.getViewManager().getCurrentView().getN() - pubsubProxy.getViewManager().getCurrentView().getF() - 1) {
-				//TODO salvar mensagem mais recente recebida de cada publisher para ignorar as mensgens que chegar
-				novoEvento(evento);
-				eventosSendoRecebidos.remove(evento);
-			} else {
-				Integer n = eventosSendoRecebidos.get(evento);
+		
+		if (eventosSendoRecebidos.containsKey(evento.clientId.processId)) {
+			Hashtable<Integer, Integer> dict = eventosSendoRecebidos.get(evento.clientId.processId);
+			Set<Integer> set = eventosRecebidos.get(evento.clientId.processId);
+			
+			System.out.println("" + set);
+			
+			if(set.contains(evento.i)) {
+				return;
+			}
+			
+			if (dict.containsKey(evento.i)) {
+				Integer n = dict.get(evento.i);
+				int quorumOfMessages = pubsubProxy.getViewManager().getCurrentView().getN() - pubsubProxy.getViewManager().getCurrentView().getF();
+
 				n++;
-				eventosSendoRecebidos.put(evento, n);
+				dict.put(evento.i, n);
+				
+				if (n == quorumOfMessages) {
+					set.add(evento.i);
+					novoEvento(evento);
+					
+					if (set.size() > 5) {
+						List<Integer> list = new LinkedList<Integer>();
+						list.addAll(set);
+						Collections.sort(list);
+						
+						Iterator<Integer> i = list.iterator();
+						int menor = i.next();
+						while (i.hasNext()) {
+							int val = i.next();
+							if (menor + 1 == val) {
+								menor = val;
+							} else {
+								break;
+							}
+						}
+						
+						i = list.iterator();
+						while (i.hasNext()) {
+							int val = i.next();
+							if (val < menor) {
+								i.remove();
+							} else {
+								break;
+							}
+						}
+						
+						set.retainAll(list);
+					}
+				}
+			} else {
+				dict.put(evento.i, 1);
 			}
 		} else {
-			System.out.println("Else");
-			eventosSendoRecebidos.put(evento, 1);
+			Hashtable<Integer, Integer> dict = new Hashtable<Integer, Integer>();
+			eventosSendoRecebidos.put(evento.clientId.processId, dict);
+			dict.put(evento.i, 1);
+			
+			Set<Integer> set = new HashSet<Integer>();
+			eventosRecebidos.put(evento.clientId.processId, set);
 		}
-		System.out.println("Evento recebido: "+evento + " numero de vezes: "+ eventosSendoRecebidos.get(evento));
-		System.out.println("Evento hashcode: "+evento);
-		System.out.println("tamanho da hashmap" + eventosSendoRecebidos.size());
 	}
 	
 	public static void novoEvento(Evento evento) {
-		System.out.println("Novo evento: " + evento);
+		System.out.println("Novo evento: \n" + evento + "\n-------------");
 	}
 }
 
@@ -99,8 +152,8 @@ class Connection extends Thread{
 				Requisicao req = (Requisicao) in.readObject();
 				Evento evento = (Evento) req;
 				
+//				System.out.println("Evento lido:" + evento);
 				SubscriberClient.recebeuEvento(evento);
-				System.out.println("Recebeu evento:" + evento);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -13,6 +13,7 @@ import bftsmart.tom.ServiceProxy;
 public class PublisherClient {
 	
 	static int porta = 7777;
+	static int contador = 0;
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		if (args.length < 2) {
@@ -20,18 +21,22 @@ public class PublisherClient {
             System.exit(-1);
         }
 		
-		ServiceProxy pubsubProxy = new ServiceProxy(Integer.parseInt(args[0]));
+		int processId = Integer.parseInt(args[0]);
+		ServiceProxy pubsubProxy = new ServiceProxy(processId);
 		
 		Evento evento = new Evento();
 		evento.topico = args[1];
 		evento.clientId = new ClientId();
 		evento.clientId.ip = "localhost";
 		evento.clientId.porta = porta;
+		evento.clientId.processId = processId;
+		
 
 		evento.tag = Requisicao.Tipo.NovoEvento;
 		
 		for(int i = 1; ; i++) {			
-			evento.msg = "Mensagem " + i;			
+			evento.msg = "Mensagem " + i;
+			evento.i = contador++;
 			
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
             new ObjectOutputStream(out).writeObject(evento);

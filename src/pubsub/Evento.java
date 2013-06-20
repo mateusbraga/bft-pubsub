@@ -8,11 +8,12 @@ public class Evento extends Requisicao implements Serializable {
 	 */
 	private static final long serialVersionUID = 1L;
 	
+	public int i;
 	public String topico;
 	public String msg;
 	
 	public String toString() {
-		return "Topico: " + topico + " Mensagem: " + msg + ".";
+		return "Topico: " + topico + "\nMensagem: " + msg + "\nId:" + i + ".";
 	}
 	
 	@Override
