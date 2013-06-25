@@ -2,6 +2,9 @@ package pubsub;
 
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
@@ -9,19 +12,20 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import bftsmart.statemanagment.ApplicationState;
-import bftsmart.tom.MessageContext;
-import bftsmart.tom.ReplicaContext;
-import bftsmart.tom.ServiceReplica;
-import bftsmart.tom.server.Recoverable;
-import bftsmart.tom.server.SingleExecutable;
+import navigators.smart.tom.MessageContext;
+import navigators.smart.tom.ReplicaContext;
+import navigators.smart.tom.ServiceReplica;
+import navigators.smart.tom.server.Recoverable;
+import navigators.smart.tom.server.SingleExecutable;
+
 
 public class Servidor implements SingleExecutable, Recoverable {
 
 	ServiceReplica replica = null;
     private ReplicaContext replicaContext;
     
-    private HashMap<String, List<ObjectOutputStream>> topicoParaInteressados = new HashMap<String, List<ObjectOutputStream>>();
+    private HashMap<String, List<ClientId>> topicoParaInteressados = new HashMap<String, List<ClientId>>();
+    private HashMap<ClientId, ObjectOutputStream> clientIdToObjectOutputStream = new HashMap<ClientId, ObjectOutputStream>();
     
     
     public Servidor(int id) {
@@ -45,8 +49,9 @@ public class Servidor implements SingleExecutable, Recoverable {
 				Evento evento = (Evento) req;
 				
 				if (topicoParaInteressados.containsKey(evento.topico)) {
-					List<ObjectOutputStream> clientesInteressados = topicoParaInteressados.get(evento.topico);
-					for(ObjectOutputStream objOutStream : clientesInteressados) {
+					List<ClientId> clientesInteressados = topicoParaInteressados.get(evento.topico);
+					for(ClientId clientId : clientesInteressados) {
+						ObjectOutputStream objOutStream = clientIdToObjectOutputStream.get(clientId);
 			            objOutStream.writeObject(evento);
 			            objOutStream.flush();
 					}
@@ -60,14 +65,19 @@ public class Servidor implements SingleExecutable, Recoverable {
 				Registrar registrar = (Registrar) req;
 				
 				if (topicoParaInteressados.containsKey(registrar.Topico)) {
+					topicoParaInteressados.get(registrar.Topico).add(registrar.clientId);
+					
 					Socket socket = new Socket (registrar.clientId.ip, registrar.clientId.porta);
-					topicoParaInteressados.get(registrar.Topico).add(new ObjectOutputStream(socket.getOutputStream()));
+					clientIdToObjectOutputStream.put(registrar.clientId, new ObjectOutputStream(socket.getOutputStream()));
+					
 				} else {
-					ArrayList<ObjectOutputStream> list = new ArrayList<ObjectOutputStream>();
-
+					ArrayList<ClientId> list = new ArrayList<ClientId>();
+					
+					list.add(registrar.clientId);
+					topicoParaInteressados.put(registrar.Topico, list);
+					
 					Socket socket = new Socket (registrar.clientId.ip, registrar.clientId.porta);
-					list.add(new ObjectOutputStream(socket.getOutputStream()));
-					topicoParaInteressados.put(registrar.Topico, list);					
+					clientIdToObjectOutputStream.put(registrar.clientId, new ObjectOutputStream(socket.getOutputStream()));
 				}
 				
 				String resposta = "Processado com sucesso!";
@@ -77,8 +87,8 @@ public class Servidor implements SingleExecutable, Recoverable {
 				Descadastrar descadastrar = (Descadastrar) req;
 				
 				if (topicoParaInteressados.containsKey(descadastrar.Topico)) {
-					Socket socket = new Socket (descadastrar.clientId.ip, descadastrar.clientId.porta);
-					topicoParaInteressados.get(descadastrar.Topico).remove(socket);
+					topicoParaInteressados.get(descadastrar.Topico).remove(descadastrar.clientId);
+					clientIdToObjectOutputStream.remove(descadastrar.clientId);
 				}
 
 				String resposta = "Processado com sucesso!";
@@ -93,23 +103,6 @@ public class Servidor implements SingleExecutable, Recoverable {
 		return null;
 	}
 	
-	@Override
-	public ApplicationState getState(int arg0, boolean arg1) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public void setReplicaContext(ReplicaContext replicaContext) {
-		this.replicaContext = replicaContext;
-	}
-
-	@Override
-	public int setState(ApplicationState arg0) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-	
     public static void main(String[] args){
         if(args.length < 1) {
             System.out.println("Use: java CounterServer <processId>");
@@ -117,8 +110,43 @@ public class Servidor implements SingleExecutable, Recoverable {
         }
         
         new Servidor(Integer.parseInt(args[0]));
-        
     }
 
+	@Override
+	public byte[] getState() {
+		System.out.println("executando getState()");
+		try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutputStream out = new ObjectOutputStream(bos);
+            out.writeObject(topicoParaInteressados);
+            out.flush();
+            out.close();
+            bos.close();
+            return bos.toByteArray();
+		} catch (IOException e) {
+            System.out.println("Exception when trying to take a + " +
+                            "snapshot of the application state" + e.getMessage());
+            e.printStackTrace();
+            return new byte[0];
+    	}
+	}
 
+	@Override
+	public void setState(byte[] state) {
+		System.out.println("executando setState");
+		ByteArrayInputStream bis = new ByteArrayInputStream(state);
+        try {
+                ObjectInput in = new ObjectInputStream(bis);
+                topicoParaInteressados = (HashMap<String, List<ClientId>>) in.readObject();
+                in.close();
+                bis.close();
+        } catch (ClassNotFoundException e) {
+                System.out.print("Coudn't find Map: " + e.getMessage());
+                e.printStackTrace();
+        } catch (IOException e) {
+                System.out.print("Exception installing the application state: " + e.getMessage());
+                e.printStackTrace();
+        }
+		
+	}
 }

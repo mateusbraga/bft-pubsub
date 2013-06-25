@@ -16,7 +16,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import bftsmart.tom.ServiceProxy;
+import navigators.smart.tom.ServiceProxy;
+
 
 public class SubscriberClient {
 
@@ -27,7 +28,7 @@ public class SubscriberClient {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		if (args.length < 2) {
-            System.out.println("Usage: java PublisherClient process_id topico");
+            System.out.println("Usage: java PublisherClient process_id topicos");
             System.exit(-1);
         }
 		
@@ -38,7 +39,6 @@ public class SubscriberClient {
 		for (int i = 1; i < args.length; i++) {
 			subscribe(args[1]);
 		}
-		System.out.println("Listen socket");
 		
         while(true) {
         	Socket clientSocket = listenSocket.accept();
@@ -69,7 +69,7 @@ public class SubscriberClient {
 			Hashtable<Integer, Integer> dict = eventosSendoRecebidos.get(evento.clientId.processId);
 			Set<Integer> set = eventosRecebidos.get(evento.clientId.processId);
 			
-			System.out.println("" + set);
+//			System.out.println("" + set);
 			
 			if(set.contains(evento.i)) {
 				return;
@@ -86,7 +86,8 @@ public class SubscriberClient {
 					set.add(evento.i);
 					novoEvento(evento);
 					
-					if (set.size() > 5) {
+					// clean up eventosRecebidos
+					if (set.size() > 50) {
 						List<Integer> list = new LinkedList<Integer>();
 						list.addAll(set);
 						Collections.sort(list);

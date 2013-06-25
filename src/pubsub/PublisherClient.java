@@ -5,10 +5,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 
-
-import bftsmart.tom.ServiceProxy;
-
-
+import navigators.smart.tom.ServiceProxy;
 
 public class PublisherClient {
 	

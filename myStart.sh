@@ -7,6 +7,6 @@ do
     PROCESS_PID=$!
     touch pid_files/$PROCESS_PID
 
-    sleep 1
+    sleep 2
 done
 
