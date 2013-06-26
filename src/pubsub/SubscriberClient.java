@@ -21,7 +21,6 @@ import navigators.smart.tom.ServiceProxy;
 public class SubscriberClient {
 
 	static ServiceProxy pubsubProxy;
-	static int porta = 7778;
 	static Hashtable<Integer, Hashtable<Integer, Integer>> eventosSendoRecebidos = new Hashtable<Integer, Hashtable<Integer, Integer>>();
 	static Hashtable<Integer, Set<Integer>> eventosRecebidos = new Hashtable<Integer, Set<Integer>>();
 
@@ -33,10 +32,10 @@ public class SubscriberClient {
 		
 		pubsubProxy =  new ServiceProxy(Integer.parseInt(args[0]));
 		
-		ServerSocket listenSocket = new ServerSocket(porta);
+		ServerSocket listenSocket = new ServerSocket(0);
 		
 		for (int i = 1; i < args.length; i++) {
-			subscribe(args[1]);
+			subscribe(args[1], listenSocket);
 		}
 		
         while(true) {
@@ -45,12 +44,12 @@ public class SubscriberClient {
         }
 	}
 	
-	public static void subscribe(String topico) throws IOException {
+	public static void subscribe(String topico, ServerSocket listenSocket) throws IOException {
 		Registrar registrar = new Registrar();
 		registrar.Topico = topico;
 		registrar.clientId = new ClientId();
 		registrar.clientId.ip = "localhost";
-		registrar.clientId.porta = porta;
+		registrar.clientId.porta = listenSocket.getLocalPort();
 
 		registrar.tag = Requisicao.Tipo.Registro;
 		

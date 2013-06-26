@@ -8,7 +8,6 @@ import navigators.smart.tom.ServiceProxy;
 
 public class PublisherClient {
 	
-	static int porta = 7777;
 	static int contador = 0;
 
 	@SuppressWarnings("static-access")
@@ -25,7 +24,7 @@ public class PublisherClient {
 		evento.topico = args[1];
 		evento.clientId = new ClientId();
 		evento.clientId.ip = "localhost";
-		evento.clientId.porta = porta;
+		evento.clientId.porta = 0;
 		evento.clientId.processId = processId;
 		
 
