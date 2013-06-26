@@ -1,14 +1,13 @@
 package pubsub;
 
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -156,6 +155,8 @@ class Connection extends Thread{
 //				System.out.println("Evento lido:" + evento);
 				SubscriberClient.recebeuEvento(evento);
 			}
+		} catch (EOFException e) {
+			System.out.println("INFO: Uma conexao foi perdida.");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

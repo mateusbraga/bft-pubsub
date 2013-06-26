@@ -3,7 +3,6 @@ package pubsub;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 
 import navigators.smart.tom.ServiceProxy;
 
@@ -12,6 +11,7 @@ public class PublisherClient {
 	static int porta = 7777;
 	static int contador = 0;
 
+	@SuppressWarnings("static-access")
 	public static void main(String[] args) throws IOException, InterruptedException {
 		if (args.length < 2) {
             System.out.println("Usage: java PublisherClient process_id topico");

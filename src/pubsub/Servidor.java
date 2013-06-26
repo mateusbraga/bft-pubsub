@@ -22,14 +22,17 @@ import navigators.smart.tom.server.SingleExecutable;
 public class Servidor implements SingleExecutable, Recoverable {
 
 	ServiceReplica replica = null;
-    private ReplicaContext replicaContext;
+    @SuppressWarnings("unused")
+	private ReplicaContext replicaContext;
     
     private HashMap<String, List<ClientId>> topicoParaInteressados = new HashMap<String, List<ClientId>>();
     private HashMap<ClientId, ObjectOutputStream> clientIdToObjectOutputStream = new HashMap<ClientId, ObjectOutputStream>();
+	private int thisServerId;
     
     
     public Servidor(int id) {
     	replica = new ServiceReplica(id, this, this);
+    	thisServerId = id;
     }
 	
 	@Override
@@ -40,13 +43,22 @@ public class Servidor implements SingleExecutable, Recoverable {
 	
 	@Override
 	public byte[] executeOrdered(byte[] command, MessageContext msgContext) {
-		System.out.println("Requisicao recebida");
+//		System.out.println("Requisicao recebida");
 		try {
 			Requisicao req = (Requisicao) new ObjectInputStream(new ByteArrayInputStream(command)).readObject();
 			
 			if (req.tag == Requisicao.Tipo.NovoEvento) {
-				System.out.println("Novo evento recebida");
+//				System.out.println("Novo evento recebida");
 				Evento evento = (Evento) req;
+				
+				
+				// Servidor com id 3 nao envia eventos com identificador multiplico de 5
+				if (evento.i % 5 == 0 && thisServerId == 3) {
+					System.out.println("Servidor com id 3 nao repassou evento com id multiplo de 5!");
+					String resposta = "Processado com sucesso!";
+		            return resposta.getBytes();
+				}
+				
 				
 				if (topicoParaInteressados.containsKey(evento.topico)) {
 					List<ClientId> clientesInteressados = topicoParaInteressados.get(evento.topico);
@@ -60,7 +72,7 @@ public class Servidor implements SingleExecutable, Recoverable {
 				String resposta = "Processado com sucesso!";
 	            return resposta.getBytes();
 			} else if (req.tag == Requisicao.Tipo.Registro) {
-				System.out.println("Novo pedido de Registro!");
+//				System.out.println("Novo pedido de Registro!");
 				
 				Registrar registrar = (Registrar) req;
 				
@@ -83,7 +95,7 @@ public class Servidor implements SingleExecutable, Recoverable {
 				String resposta = "Processado com sucesso!";
 	            return resposta.getBytes();
 			} else if (req.tag == Requisicao.Tipo.Descadastrar) {
-				System.out.println("Novo pedido para descadastrar recebido!");
+//				System.out.println("Novo pedido para descadastrar recebido!");
 				Descadastrar descadastrar = (Descadastrar) req;
 				
 				if (topicoParaInteressados.containsKey(descadastrar.Topico)) {
@@ -94,7 +106,7 @@ public class Servidor implements SingleExecutable, Recoverable {
 				String resposta = "Processado com sucesso!";
 	            return resposta.getBytes();
 			} else {
-				System.out.println("Tipo de requisição não conhecido.");
+				System.out.println("ERROR: Tipo de requisição não conhecido.");
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -114,7 +126,7 @@ public class Servidor implements SingleExecutable, Recoverable {
 
 	@Override
 	public byte[] getState() {
-		System.out.println("executando getState()");
+//		System.out.println("executando getState()");
 		try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             ObjectOutputStream out = new ObjectOutputStream(bos);
@@ -131,15 +143,27 @@ public class Servidor implements SingleExecutable, Recoverable {
     	}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void setState(byte[] state) {
-		System.out.println("executando setState");
+//		System.out.println("executando setState");
 		ByteArrayInputStream bis = new ByteArrayInputStream(state);
         try {
                 ObjectInput in = new ObjectInputStream(bis);
                 topicoParaInteressados = (HashMap<String, List<ClientId>>) in.readObject();
                 in.close();
                 bis.close();
+                
+                clientIdToObjectOutputStream.clear();
+                for (String topico : topicoParaInteressados.keySet()) {
+                    if (topicoParaInteressados.containsKey(topico)) {
+    					List<ClientId> clientesInteressados = topicoParaInteressados.get(topico);
+    					for(ClientId clientId : clientesInteressados) {
+    						Socket socket = new Socket (clientId.ip, clientId.porta);
+    						clientIdToObjectOutputStream.put(clientId, new ObjectOutputStream(socket.getOutputStream()));
+    					}
+    				}
+                }
         } catch (ClassNotFoundException e) {
                 System.out.print("Coudn't find Map: " + e.getMessage());
                 e.printStackTrace();
