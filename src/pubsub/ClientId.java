@@ -11,5 +11,9 @@ public class ClientId implements Serializable {
 	public int processId;
 	public String ip;
 	public int porta;
+	
+	public String toString() {
+		return "Processoid: " + processId + " Endereco:" + ip + ":" + porta;
+	}
 }
 	

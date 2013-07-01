@@ -8,6 +8,7 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,8 +65,12 @@ public class Servidor implements SingleExecutable, Recoverable {
 					List<ClientId> clientesInteressados = topicoParaInteressados.get(evento.topico);
 					for(ClientId clientId : clientesInteressados) {
 						ObjectOutputStream objOutStream = clientIdToObjectOutputStream.get(clientId);
-			            objOutStream.writeObject(evento);
-			            objOutStream.flush();
+						try {
+							objOutStream.writeObject(evento);
+							objOutStream.flush();
+						} catch(SocketException e) {
+							System.out.println("Conexao com o cliente falhou: " + clientId);
+						}
 					}
 				}		
 				
