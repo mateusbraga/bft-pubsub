@@ -79,7 +79,7 @@ public class Servidor implements SingleExecutable, Recoverable {
 			} else if (req.tag == Requisicao.Tipo.Registro) {
 //				System.out.println("Novo pedido de Registro!");
 				
-				Registrar registrar = (Registrar) req;
+				Cadastrar registrar = (Cadastrar) req;
 				
 				if (topicoParaInteressados.containsKey(registrar.Topico)) {
 					topicoParaInteressados.get(registrar.Topico).add(registrar.clientId);

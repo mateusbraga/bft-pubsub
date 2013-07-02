@@ -2,7 +2,7 @@ package pubsub;
 
 import java.io.Serializable;
 
-public class Registrar extends Requisicao implements Serializable {
+public class Cadastrar extends Requisicao implements Serializable {
 	
 	/**
 	 * 

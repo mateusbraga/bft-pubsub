@@ -45,7 +45,7 @@ public class SubscriberClient {
 	}
 	
 	public static void subscribe(String topico, ServerSocket listenSocket) throws IOException {
-		Registrar registrar = new Registrar();
+		Cadastrar registrar = new Cadastrar();
 		registrar.Topico = topico;
 		registrar.clientId = new ClientId();
 		registrar.clientId.ip = "localhost";
