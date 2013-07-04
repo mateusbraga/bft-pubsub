@@ -35,7 +35,7 @@ public class SubscriberClient {
 		ServerSocket listenSocket = new ServerSocket(0);
 		
 		for (int i = 1; i < args.length; i++) {
-			subscribe(args[1], listenSocket);
+			subscribe(args[i], listenSocket);
 		}
 		
         while(true) {
